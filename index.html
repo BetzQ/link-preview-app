@@ -94,9 +94,14 @@
       return res.json();
     }
     async function insertUrl(rawUrl) {
-      let meta = { title: '', description: '', image: '' };
-      try { meta = await fetchMeta(rawUrl); } catch(e) { /* lanjut tanpa meta */ }
-      await supabaseFetch('links', 'POST', { url: rawUrl, title: meta.title || '', description: meta.description || '', image: meta.image || '', created_at: new Date().toISOString() });
+      // Simpan dulu pakai string kosong, biar langsung masuk DB
+      const res = await supabaseFetch('links', 'POST', { url: rawUrl, title: '', description: '', image: '', created_at: new Date().toISOString() });
+      // Proses scraping di belakang layar (tidak blok tombol)
+      try {
+        const meta = await fetchMeta(rawUrl);
+        const id = res && res[0] ? res[0].id : null;
+        if (id) await supabaseFetch('links', 'PATCH', { id, title: meta.title || '', description: meta.description || '', image: meta.image || '' });
+      } catch(e) {}
     }
     async function getLinks() {
       try { return await supabaseFetch('links'); } catch(e) { return []; }
