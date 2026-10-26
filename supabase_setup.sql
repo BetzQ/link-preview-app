@@ -9,3 +9,4 @@ CREATE TABLE IF NOT EXISTS links (
 ALTER TABLE links ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Allow anon insert" ON links FOR INSERT WITH CHECK (true);
 CREATE POLICY "Allow anon select" ON links FOR SELECT USING (true);
+CREATE POLICY "Allow anon delete" ON links FOR DELETE USING (true);

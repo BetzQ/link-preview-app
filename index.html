@@ -149,7 +149,21 @@
     const empty = document.getElementById('empty');
     const countBadge = document.getElementById('countBadge');
 
-    async function render() {
+    async function deleteLink(id) {
+  try {
+    await fetch(`${SUPABASE_URL}/rest/v1/links?id=eq.${id}`, {
+      method: 'DELETE',
+      headers: {
+        'apikey': SUPABASE_ANON_KEY,
+        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+        'Content-Type': 'application/json',
+        'Prefer': 'return=minimal'
+      }
+    });
+    await render();
+  } catch(e) { console.error('delete error', e); }
+}
+async function render() {
       grid.innerHTML = '';
       const links = await getLinks();
       countBadge.textContent = links.length + ' tautan';
@@ -199,6 +213,14 @@
               </div>
             </div>`;
         }
+        if (item.id) {
+  const btn = document.createElement('button');
+  btn.className = 'mt-3 text-xs text-red-300/70 hover:text-red-300 underline underline-offset-2';
+  btn.textContent = 'Hapus tautan';
+  btn.onclick = () => deleteLink(item.id);
+  const inner = card.querySelector('.p-5');
+  if (inner) inner.appendChild(btn);
+}
         grid.appendChild(card);
       }
     }
