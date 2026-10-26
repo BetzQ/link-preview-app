@@ -137,9 +137,9 @@
         const html = await r.text();
         if (html && html.length > 200 && !html.includes('522') && !html.includes('Connection timed out')) {
           const get = (n, d='') => {
-            const m = html.match(new RegExp('<meta[^>]+(?:property|name)=["']' + n + '["'][^>]+content=["']([^"']+)["']', 'i'));
+            const m = html.match(new RegExp("<meta[^>]+(?:property|name)=[\"']" + n + "[\"'][^>]+content=[\"']([^\"']+)[\"']", 'i'));
             if (m) return m[1];
-            const m2 = html.match(new RegExp('<meta[^>]+content=["']([^"']+)["'][^>]+(?:property|name)=["']' + n + '["']', 'i'));
+            const m2 = html.match(new RegExp("<meta[^>]+content=[\"']([^\"']+)[\"'][^>]+(?:property|name)=[\"']" + n + "[\"']", 'i'));
             return m2 ? m2[1] : d;
           };
           const title = get('og:title') || html.match(/<title[^>]*>([^<]+)<\/title>/i)?.[1] || 'Tidak ada judul';
