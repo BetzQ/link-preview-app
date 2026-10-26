@@ -140,9 +140,10 @@
         const desc = get('og:description') || get('description') || 'Tidak ada deskripsi';
         const img = get('og:image') || html.match(/<img[^>]+src=["']([^"']+\.(?:png|jpg|jpeg|gif|webp))[^"']*["']/i)?.[1] || '';
         return { title: title.trim(), description: desc.trim(), image: img.trim(), url };
-      } catch (e) {
-        return { title: url, description: 'Gagal mengambil metadata melalui proxy.', image: '', url };
+          }
+        } catch (e) { /* try next proxy */ }
       }
+      return { title: url, description: 'Gagal mengambil metadata melalui proxy.', image: '', url };
     }
 
     // --- Rendering ---
