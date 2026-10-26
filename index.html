@@ -126,7 +126,7 @@
     // --- Scraping via AllOrigins ---
     async function fetchMeta(url) {
       try {
-        const proxy = `https://corsproxy.io/?${encodeURIComponent(url)}`;
+        const proxy = `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`;
         const r = await fetch(proxy, { headers: { 'Accept': 'text/html' } });
         if (!r.ok) throw new Error('proxy fail');
         const html = await r.text();
@@ -201,7 +201,7 @@ async function render() {
           if (!meta.title || !meta.image) meta = await fetchMeta(url);
           card.innerHTML = `
             <a href="${url}" target="_blank" class="block relative h-48 overflow-hidden group">
-              <img src="${meta.image || 'https://via.placeholder.com/600x300/121320/e8e8f0?text=No+Image'}" alt="preview" class="w-full h-full object-cover transition duration-700 group-hover:scale-105" loading="lazy" />
+              <img src="${meta.image || 'https://picsum.photos/seed/'+encodeURIComponent(url || 'link')+'/600/300'}" alt="preview" class="w-full h-full object-cover transition duration-700 group-hover:scale-105" loading="lazy" />
               <div class="absolute inset-0 bg-gradient-to-t from-ink via-transparent to-transparent"></div>
               <span class="absolute top-3 left-3 tag text-violet-300 border-violet-400/20">Website</span>
             </a>
