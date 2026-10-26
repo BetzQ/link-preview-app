@@ -94,7 +94,8 @@
       return res.json();
     }
     async function insertUrl(rawUrl) {
-      const meta = await fetchMeta(rawUrl);
+      let meta = { title: '', description: '', image: '' };
+      try { meta = await fetchMeta(rawUrl); } catch(e) { /* lanjut tanpa meta */ }
       await supabaseFetch('links', 'POST', { url: rawUrl, title: meta.title || '', description: meta.description || '', image: meta.image || '', created_at: new Date().toISOString() });
     }
     async function getLinks() {
