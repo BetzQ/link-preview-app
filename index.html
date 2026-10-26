@@ -151,7 +151,9 @@
     } catch(e) {}
   }
   return { title: url, description: 'Gagal mengambil metadata melalui proxy.', image: '', url };
-}async function submitUrl() {
+}
+
+async function submitUrl() {
       const input = document.getElementById('urlInput');
       let raw = input.value.trim();
       if (!raw) return;
