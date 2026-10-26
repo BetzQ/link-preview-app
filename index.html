@@ -94,7 +94,8 @@
       return res.json();
     }
     async function insertUrl(rawUrl) {
-      await supabaseFetch('links', 'POST', { url: rawUrl, created_at: new Date().toISOString() });
+      const meta = await fetchMeta(rawUrl);
+      await supabaseFetch('links', 'POST', { url: rawUrl, title: meta.title || '', description: meta.description || '', image: meta.image || '', created_at: new Date().toISOString() });
     }
     async function getLinks() {
       try { return await supabaseFetch('links'); } catch(e) { return []; }
@@ -196,7 +197,8 @@ async function render() {
               <p class="text-xs text-white/40">Media langsung: ${new URL(url).hostname}</p>
             </div>`;
         } else {
-          const meta = await fetchMeta(url);
+          let meta = { title: item.title || '', description: item.description || '', image: item.image || '', url };
+          if (!meta.title || !meta.image) meta = await fetchMeta(url);
           card.innerHTML = `
             <a href="${url}" target="_blank" class="block relative h-48 overflow-hidden group">
               <img src="${meta.image || 'https://via.placeholder.com/600x300/121320/e8e8f0?text=No+Image'}" alt="preview" class="w-full h-full object-cover transition duration-700 group-hover:scale-105" loading="lazy" />
