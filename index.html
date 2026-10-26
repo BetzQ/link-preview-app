@@ -126,7 +126,7 @@
     // --- Scraping via AllOrigins ---
     async function fetchMeta(url) {
       try {
-        const proxy = `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`;
+        const proxy = `https://corsproxy.io/?${encodeURIComponent(url)}`;
         const r = await fetch(proxy, { headers: { 'Accept': 'text/html' } });
         if (!r.ok) throw new Error('proxy fail');
         const html = await r.text();
