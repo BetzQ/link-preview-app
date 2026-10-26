@@ -124,111 +124,34 @@
     }
 
     // --- Scraping via AllOrigins ---
-    async function fetchMeta(url) {
-      try {
-        const proxy = `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`;
-        const r = await fetch(proxy, { headers: { 'Accept': 'text/html' } });
-        if (!r.ok) throw new Error('proxy fail');
+    async function fetchMeta(url){
+  const proxies = [
+    `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
+    `https://corsproxy.io/?${encodeURIComponent(url)}`,
+    `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(url)}`
+  ];
+  for (const proxy of proxies) {
+    try {
+      const r = await fetch(proxy, { headers: { 'Accept': 'text/html' } });
+      if (r.ok) {
         const html = await r.text();
-        const get = (n, d='') => {
-          const m = html.match(new RegExp(`<meta[^>]+(?:property|name)=["']${n}["'][^>]+content=["']([^"']+)["']`, 'i'));
-          if (m) return m[1];
-          const m2 = html.match(new RegExp(`<meta[^>]+content=["']([^"']+)["'][^>]+(?:property|name)=["']${n}["']`, 'i'));
-          return m2 ? m2[1] : d;
-        };
-        const title = get('og:title') || html.match(/<title[^>]*>([^<]+)<\/title>/i)?.[1] || 'Tidak ada judul';
-        const desc = get('og:description') || get('description') || 'Tidak ada deskripsi';
-        const img = get('og:image') || html.match(/<img[^>]+src=["']([^"']+\.(?:png|jpg|jpeg|gif|webp))[^"']*["']/i)?.[1] || '';
-        return { title: title.trim(), description: desc.trim(), image: img.trim(), url };
-          }
-        } catch (e) { /* try next proxy */ }
-      }
-      return { title: url, description: 'Gagal mengambil metadata melalui proxy.', image: '', url };
-    }
-
-    // --- Rendering ---
-    const grid = document.getElementById('grid');
-    const empty = document.getElementById('empty');
-    const countBadge = document.getElementById('countBadge');
-
-    async function deleteLink(id) {
-  try {
-    await fetch(`${SUPABASE_URL}/rest/v1/links?id=eq.${id}`, {
-      method: 'DELETE',
-      headers: {
-        'apikey': SUPABASE_ANON_KEY,
-        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
-        'Content-Type': 'application/json',
-        'Prefer': 'return=minimal'
-      }
-    });
-    await render();
-  } catch(e) { console.error('delete error', e); }
-}
-async function render() {
-      grid.innerHTML = '';
-      const links = await getLinks();
-      countBadge.textContent = links.length + ' tautan';
-      if (!links.length) { empty.style.display = 'block'; return; }
-      empty.style.display = 'none';
-
-      for (const item of links) {
-        if (!item.url) continue;
-        const url = item.url;
-        const type = detectType(url);
-        const card = document.createElement('article');
-        card.className = 'glass-card rounded-3xl overflow-hidden flex flex-col animate-in fade-in-50 duration-500';
-
-        if (type === 'youtube' || type === 'vimeo') {
-          card.innerHTML = `
-            <div class="relative bg-black">
-              ${makeEmbed(url, type)}
-            </div>
-            <div class="p-5 flex-1 flex flex-col gap-2">
-              <div class="flex items-center gap-2"><span class="tag text-emerald-300 border-emerald-400/20">Video Populer</span></div>
-              <h3 class="font-display text-lg font-bold leading-snug">${url}</h3>
-              <a href="${url}" target="_blank" class="text-xs text-white/40 hover:text-white underline decoration-white/20 underline-offset-2">Buka di platform asal →</a>
-            </div>`;
-        } else if (type === 'custom_video') {
-          card.innerHTML = `
-            <div class="relative bg-gradient-to-b from-inkAlt to-black"><video src="${url}" controls preload="metadata" class="w-full h-64 md:h-72 object-contain bg-black"></video></div>
-            <div class="p-5 flex-1 flex flex-col gap-2">
-              <div class="flex items-center gap-2"><span class="tag text-amber-300 border-amber-400/20">Video Kustom</span></div>
-              <h3 class="font-display text-lg font-bold leading-snug truncate">${url.split('/').pop() || url}</h3>
-              <p class="text-xs text-white/40">Media langsung: ${new URL(url).hostname}</p>
-            </div>`;
-        } else {
-          let meta = { title: item.title || '', description: item.description || '', image: item.image || '', url };
-          if (!meta.title || !meta.image) meta = await fetchMeta(url);
-          card.innerHTML = `
-            <a href="${url}" target="_blank" class="block relative h-48 overflow-hidden group">
-              <img src="${meta.image || 'https://picsum.photos/seed/'+encodeURIComponent(url || 'link')+'/600/300'}" alt="preview" class="w-full h-full object-cover transition duration-700 group-hover:scale-105" loading="lazy" />
-              <div class="absolute inset-0 bg-gradient-to-t from-ink via-transparent to-transparent"></div>
-              <span class="absolute top-3 left-3 tag text-violet-300 border-violet-400/20">Website</span>
-            </a>
-            <div class="p-5 flex-1 flex flex-col gap-3">
-              <h3 class="font-display text-lg font-bold leading-snug group-hover:text-accent transition">${meta.title}</h3>
-              <p class="text-sm text-white/60 leading-relaxed line-clamp-3">${meta.description}</p>
-              <div class="flex items-center gap-2 text-xs text-white/40">
-                <span class="truncate">${new URL(url).hostname}</span>
-                <span>•</span>
-                <span>Scraped via AllOrigins</span>
-              </div>
-            </div>`;
+        if (html && html.length > 200 && !html.includes('522') && !html.includes('Connection timed out')) {
+          const get = (n, d='') => {
+            const m = html.match(new RegExp('<meta[^>]+(?:property|name)=["']' + n + '["'][^>]+content=["']([^"']+)["']', 'i'));
+            if (m) return m[1];
+            const m2 = html.match(new RegExp('<meta[^>]+content=["']([^"']+)["'][^>]+(?:property|name)=["']' + n + '["']', 'i'));
+            return m2 ? m2[1] : d;
+          };
+          const title = get('og:title') || html.match(/<title[^>]*>([^<]+)<\/title>/i)?.[1] || 'Tidak ada judul';
+          const desc = get('og:description') || get('description') || 'Tidak ada deskripsi';
+          const img = get('og:image') || html.match(/<img[^>]+src=["']([^"']+\.(?:png|jpg|jpeg|gif|webp))[^"']*["']/i)?.[1] || '';
+          return { title: title.trim(), description: desc.trim(), image: img.trim(), url };
         }
-        if (item.id) {
-  const btn = document.createElement('button');
-  btn.className = 'mt-3 text-xs text-red-300/70 hover:text-red-300 underline underline-offset-2';
-  btn.textContent = 'Hapus tautan';
-  btn.onclick = () => deleteLink(item.id);
-  const inner = card.querySelector('.p-5');
-  if (inner) inner.appendChild(btn);
-}
-        grid.appendChild(card);
       }
-    }
-
-    async function submitUrl() {
+    } catch(e) {}
+  }
+  return { title: url, description: 'Gagal mengambil metadata melalui proxy.', image: '', url };
+}async function submitUrl() {
       const input = document.getElementById('urlInput');
       let raw = input.value.trim();
       if (!raw) return;
